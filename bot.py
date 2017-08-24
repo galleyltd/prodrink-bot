@@ -26,7 +26,9 @@ prodrink = Github("").get_organization("prodrink")
 
 chatid = -1
 
-one_hour = datetime.timedelta(hours=1)
+one_hour = datetime.timedelta(minutes = 4*60.0)
+
+utc = datetime.timedelta(hours = 3)
 
 def start(bot, update):
     if update.message.chat.id == chatid:
@@ -42,11 +44,13 @@ def hello(bot, update):
         update.message.reply_text("Sosite!")
 
 def callback_minute(bot, job):
+    #bot.send_message(chat_id='-231093383', text='Sosite! Nachinau pull!')
     last_hour = datetime.datetime.now() - one_hour
+    print(last_hour)
     for e in prodrink.get_events():
         if e.created_at > last_hour:
-            bot.send_message(chat_id='-',
-                             text="{} for repo {} from {}".format(e.type, e.repo.name, e.actor.name))
+            bot.send_message(chat_id='-231093383',
+                             text="{} for repo {} from {} at {} MSK".format(e.type, e.repo.name, e.actor.name, e.created_at + utc))
 
 updater = Updater('')
 
@@ -55,7 +59,7 @@ updater.dispatcher.add_handler(CommandHandler('hello', hello))
 
 queue = updater.job_queue
 
-queue.run_repeating(callback_minute, 60.0*60.0, first=0)
+queue.run_repeating(callback_minute, interval=60.0*60.0, first=0)
 
 updater.start_polling()
 updater.idle()
