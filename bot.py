@@ -2,6 +2,25 @@ from telegram.ext import Updater, CommandHandler, Job
 from github import Github
 
 import datetime
+import redis
+import sys, getopt
+
+def main(argv):
+    if len(argv) != 3:
+        print('Expected usage of script:')
+        print('python3 bot.py redishost redispost redispassword')
+        sys.exit(2)
+    host, port, pwd = argv
+    try:
+        r = redis.StrictRedis(host=host, port=port, password=pwd)
+        print(r.get('foo'))
+    except Exception:
+        print("Provided params are incorrect. Couldn't connect to Redis instance")
+    
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
+
 
 prodrink = Github("").get_organization("prodrink")
 
