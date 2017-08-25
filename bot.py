@@ -11,6 +11,14 @@ one_hour = datetime.timedelta(minutes = 4*60.0)
 
 utc = datetime.timedelta(hours = 3)
 
+def delete(bot, update):
+    if update.message.chat.id == chatid:
+        empty, key = update.message.text.replace('/delete', '').split(' ')
+        REDIS_QUEUE.delete(key)
+        update.message.reply_text("Deleting value for key {}".format(key))
+    else:
+        update.message.reply_text("Sosite!")
+
 def get(bot, update):
     if update.message.chat.id == chatid:
         update.message.reply_text(REDIS_QUEUE.get(update.message.text.replace('/get ', '')).decode())
@@ -22,6 +30,12 @@ def set(bot, update):
         empty, key, value = update.message.text.replace('/set', '').split(' ')
         REDIS_QUEUE.set(key, value)
         update.message.reply_text("Setting for key {} value {}".format(key, value))
+    else:
+        update.message.reply_text("Sosite!")
+
+def help(bot, update):
+    if update.message.chat.id == chatid:
+        update.message.reply_text("No help so far!")
     else:
         update.message.reply_text("Sosite!")
 
@@ -67,6 +81,8 @@ def main(argv):
     updater.dispatcher.add_handler(CommandHandler('hello', hello))
     updater.dispatcher.add_handler(CommandHandler('get', get))
     updater.dispatcher.add_handler(CommandHandler('set', set))
+    updater.dispatcher.add_handler(CommandHandler('delete', delete))
+    updater.dispatcher.add_handler(CommandHandler('help', help))
 
     queue = updater.job_queue
 
