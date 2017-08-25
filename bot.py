@@ -7,9 +7,7 @@ import sys
 
 chatid = -231093383
 
-one_hour = datetime.timedelta(minutes = 4*60.0)
-
-utc = datetime.timedelta(hours = 3)
+one_minute = datetime.timedelta(minutes=1.0)
 
 def delete(bot, update):
     if update.message.chat.id == chatid:
@@ -19,11 +17,13 @@ def delete(bot, update):
     else:
         update.message.reply_text("Sosite!")
 
+
 def get(bot, update):
     if update.message.chat.id == chatid:
         update.message.reply_text(REDIS_QUEUE.get(update.message.text.replace('/get ', '')).decode())
     else:
         update.message.reply_text("Sosite!")
+
 
 def set(bot, update):
     if update.message.chat.id == chatid:
@@ -33,17 +33,20 @@ def set(bot, update):
     else:
         update.message.reply_text("Sosite!")
 
+
 def help(bot, update):
     if update.message.chat.id == chatid:
         update.message.reply_text("No help so far!")
     else:
         update.message.reply_text("Sosite!")
 
+
 def start(bot, update):
     if update.message.chat.id == chatid:
         update.message.reply_text("Hello, Prodrink chat!")
     else:
         update.message.reply_text("Sosite!")
+
 
 def hello(bot, update):
     if update.message.chat.id == chatid:
@@ -52,13 +55,15 @@ def hello(bot, update):
     else:
         update.message.reply_text("Sosite!")
 
+
 def callback_minute(bot, job):
-    last_hour = datetime.datetime.now() - one_hour
-    print(last_hour)
+    last_minute = datetime.datetime.utcnow() - one_minute
     for e in prodrink.get_events():
-        if e.created_at > last_hour:
+        if e.created_at > last_minute:
             bot.send_message(chat_id='-231093383',
-                             text="{} for repo {} from {} at {} MSK".format(e.type, e.repo.name, e.actor.name, e.created_at + utc))
+                             text="{} for repo {} from {} at {} UTC"
+                             .format(e.type, e.repo.name, e.actor.name, e.created_at))
+
 
 def main(argv):
     if len(argv) != 3:
@@ -86,11 +91,11 @@ def main(argv):
 
     queue = updater.job_queue
 
-    queue.run_repeating(callback_minute, interval=60.0 * 60.0, first=0)
+    queue.run_repeating(callback_minute, interval=60.0, first=0)
 
     updater.start_polling()
     updater.idle()
 
+
 if __name__ == "__main__":
     main(sys.argv[1:])
-
