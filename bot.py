@@ -7,52 +7,20 @@ import sys
 
 chatid = -231093383
 
-one_minute = datetime.timedelta(minutes=5.0)
-
+one_minute = datetime.timedelta(minutes=1.0)
 
 def delete(bot, update):
     if update.message.chat.id == chatid:
         empty, key = update.message.text.replace('/delete', '').split(' ')
-        value = REDIS_QUEUE.get(key)
-        if value is None:
-            update.message.reply_text("There is nothing to delete for key: {}".format(key))
-        else:
-            update.message.reply_text("Deleting value for key {}".format(key))
-            REDIS_QUEUE.delete(key)
-    else:
-        update.message.reply_text("Sosite!")
-
-
-def getall(bot, update):
-    if update.message.chat.id == chatid:
-        res = []
-        for key in REDIS_QUEUE.scan_iter():
-            res.append("> {} = {}".format(key.decode(), REDIS_QUEUE.get(key).decode()))
-        update.message.reply_text('\n'.join(res))
-    else:
-        update.message.reply_text("Sosite!")
-
-
-def scan(bot, update):
-    if update.message.chat.id == chatid:
-        namespace = update.message.text.replace('/scan ', '')
-        res = []
-        for key in REDIS_QUEUE.scan_iter():
-            if key.decode().find(namespace) >= 0:
-                res.append("> {} = {}".format(key.decode(), REDIS_QUEUE.get(key).decode()))
-        update.message.reply_text('\n'.join(res))
+        REDIS_QUEUE.delete(key)
+        update.message.reply_text("Deleting value for key {}".format(key))
     else:
         update.message.reply_text("Sosite!")
 
 
 def get(bot, update):
     if update.message.chat.id == chatid:
-        key = update.message.text.replace('/get ', '')
-        value = REDIS_QUEUE.get(key)
-        if value is None:
-            update.message.reply_text("No value for key: {}".format(key))
-        else:
-            update.message.reply_text(value.decode())
+        update.message.reply_text(REDIS_QUEUE.get(update.message.text.replace('/get ', '')).decode())
     else:
         update.message.reply_text("Sosite!")
 
@@ -68,17 +36,22 @@ def set(bot, update):
 
 def help(bot, update):
     if update.message.chat.id == chatid:
-        bot.send_message(chat_id=chatid,
-                         text="""
-        <b>Prodrink Bot Commands:</b>
-        
-        /get key - get value for key in Redis
-        /getall - get all key, value pairs
-        /scan namespace - get all values for namespace:*
-        /set key value - set value for key in Redis
-        /delete key - delete value for key in Redis
-        /help - show this help
-        """, parse_mode='HTML')
+        update.message.reply_text("No help so far!")
+    else:
+        update.message.reply_text("Sosite!")
+
+
+def start(bot, update):
+    if update.message.chat.id == chatid:
+        update.message.reply_text("Hello, Prodrink chat!")
+    else:
+        update.message.reply_text("Sosite!")
+
+
+def hello(bot, update):
+    if update.message.chat.id == chatid:
+        update.message.reply_text(
+            'Hello {}'.format(update.message.from_user.first_name))
     else:
         update.message.reply_text("Sosite!")
 
@@ -87,27 +60,9 @@ def callback_minute(bot, job):
     last_minute = datetime.datetime.utcnow() - one_minute
     for e in prodrink.get_events():
         if e.created_at > last_minute:
-            if e.type == 'PushEvent':
-                print('not supported')
-            elif e.type == 'IssuesEvent':
-                bot.send_message(chat_id=chatid, text="""
-                <a href="{}">{}</a> issue was created by {} in repo {} at {} UTC
-                """.format(
-                    e.payload.get('issue').get('html_url'),
-                    e.payload.get('issue').get('title'),
-                    e.payload.get('issue').get('user').get('login'),
-                    e.repo.name,
-                    e.created_at
-                ), parse_mode='HTML')
-            elif e.type == 'IssueCommentEvent':
-                print('not supported')
-                print(e.payload)
-            else:
-                print('not supported')
-                print(e.type)
-                print(e.payload)
-                # bot.send_message(chat_id=chatid, text="{} for repo {} from {} at {} UTC"
-                #                  .format(e.type, e.repo.name, e.actor.name, e.created_at))
+            bot.send_message(chat_id='-231093383',
+                             text="{} for repo {} from {} at {} UTC"
+                             .format(e.type, e.repo.name, e.actor.name, e.created_at))
 
 
 def main(argv):
@@ -123,34 +78,20 @@ def main(argv):
         print("Provided params are incorrect. Couldn't connect to Redis instance")
 
     global prodrink
+    prodrink = Github("").get_organization("prodrink")
 
-    github_api_key = "bot:github:api:key"
-    if REDIS_QUEUE.exists(github_api_key):
-        prodrink = Github(REDIS_QUEUE.get(github_api_key).decode()).get_organization("prodrink")
-    else:
-        print('Prodrink Redis do not have GitHub API key')
-        sys.exit(2)
+    updater = Updater('')
 
-    global updater
-
-    telegram_api_key = "bot:telegram:api:key"
-
-    if REDIS_QUEUE.exists(telegram_api_key):
-        updater = Updater(REDIS_QUEUE.get(telegram_api_key).decode())
-    else:
-        print('Prodrink Redis do not have Telegram API key')
-        sys.exit(2)
-
+    updater.dispatcher.add_handler(CommandHandler('start', start))
+    updater.dispatcher.add_handler(CommandHandler('hello', hello))
     updater.dispatcher.add_handler(CommandHandler('get', get))
-    updater.dispatcher.add_handler(CommandHandler('scan', scan))
-    updater.dispatcher.add_handler(CommandHandler('getall', getall))
     updater.dispatcher.add_handler(CommandHandler('set', set))
     updater.dispatcher.add_handler(CommandHandler('delete', delete))
     updater.dispatcher.add_handler(CommandHandler('help', help))
 
     queue = updater.job_queue
 
-    queue.run_repeating(callback_minute, interval=5 * 60.0, first=0)
+    queue.run_repeating(callback_minute, interval=60.0, first=0)
 
     updater.start_polling()
     updater.idle()
