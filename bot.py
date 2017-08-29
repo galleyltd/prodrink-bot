@@ -100,7 +100,7 @@ def callback_minute(bot, job):
                     msg,
                     author,
                     e.repo.name
-                ), parse_mode='HTML')
+                ), parse_mode='HTML', disable_web_page_preview=True)
             elif e.type == 'IssuesEvent':
                 action = e.payload['action']
                 if action == 'closed':
@@ -111,7 +111,7 @@ def callback_minute(bot, job):
                         e.payload.get('issue').get('title'),
                         e.payload.get('issue').get('user').get('login'),
                         e.repo.name
-                    ), parse_mode='HTML')
+                    ), parse_mode='HTML', disable_web_page_preview=True)
                 else:
                     bot.send_message(chat_id=chatid, text="""
                                                         <a href="{}">{}</a> issue was created by {} in repo {}
@@ -120,7 +120,7 @@ def callback_minute(bot, job):
                         e.payload.get('issue').get('title'),
                         e.payload.get('issue').get('user').get('login'),
                         e.repo.name
-                    ), parse_mode='HTML')
+                    ), parse_mode='HTML', disable_web_page_preview=True)
             elif e.type == 'PullRequestEvent':
                 action = e.payload['action']
                 if action == 'closed':
@@ -131,7 +131,7 @@ def callback_minute(bot, job):
                         e.payload.get('pull_request').get('title'),
                         e.payload.get('pull_request').get('user').get('login'),
                         e.repo.name
-                    ), parse_mode='HTML')
+                    ), parse_mode='HTML', disable_web_page_preview=True)
                 elif action == 'opened':
                     bot.send_message(chat_id=chatid, text="""
                                                     Pull request <a href="{}">{}</a> was opened by {} in repo {}
@@ -141,7 +141,7 @@ def callback_minute(bot, job):
                         e.payload.get('pull_request').get('title'),
                         e.payload.get('pull_request').get('user').get('login'),
                         e.repo.name
-                    ), parse_mode='HTML')
+                    ), parse_mode='HTML', disable_web_page_preview=True)
             elif e.type == 'PullRequestReviewCommentEvent':
                 bot.send_message(chat_id=chatid, text="""
                                                Pull request <a href="{}">{}</a> has been commented by {}
@@ -149,7 +149,7 @@ def callback_minute(bot, job):
                     e.payload.get('pull_request').get('html_url'),
                     e.payload.get('pull_request').get('title'),
                     e.payload.get('pull_request').get('user').get('login')
-                ), parse_mode='HTML')
+                ), parse_mode='HTML', disable_web_page_preview=True)
             else:
                 print('not supported')
                 print(e.type)
