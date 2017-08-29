@@ -92,11 +92,15 @@ def callback_minute(bot, job):
                 msg = e.payload.get('commits')[0].get('message')
                 url = e.payload.get('commits')[0].get('url').replace('commits', 'commit').replace('api.', '').replace(
                     'repos/', '')
-                print(url)
                 author = e.payload.get('commits')[0].get('author').get('name')
                 bot.send_message(chat_id=chatid, text="""
-                <a href="{}">{}</a> commit was pushed by {} in repo {} at {} UTC
-                """.format(url, msg, author, e.repo.name, e.created_at), parse_mode='HTML')
+                <a href="{}">{}</a> commit was pushed by {} in repo {}
+                """.format(
+                    url,
+                    msg,
+                    author,
+                    e.repo.name
+                ), parse_mode='HTML')
             elif e.type == 'IssuesEvent':
                 action = e.payload['action']
                 if action == 'closed':
