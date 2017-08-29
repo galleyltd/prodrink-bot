@@ -88,61 +88,63 @@ def callback_minute(bot, job):
     for e in prodrink.get_events():
         if e.created_at > last_minute:
             print(e.payload)
-            if e.type == 'x':
-                print('x')
+            if e.type == 'PushEvent':
+                msg = e.payload.get('commits')[0].get('message')
+                url = e.payload.get('commits')[0].get('url').replace('commits', 'commit').replace('api.', '').replace(
+                    'repos/', '')
+                print(url)
+                author = e.payload.get('commits')[0].get('author').get('name')
+                bot.send_message(chat_id=chatid, text="""
+                <a href="{}">{}</a> commit was pushed by {} in repo {} at {} UTC
+                """.format(url, msg, author, e.repo.name, e.created_at), parse_mode='HTML')
             elif e.type == 'IssuesEvent':
                 action = e.payload['action']
                 if action == 'closed':
                     bot.send_message(chat_id=chatid, text="""
-                                    <a href="{}">{}</a> issue was closed by {} in repo {} at {} UTC
+                                    <a href="{}">{}</a> issue was closed by {} in repo {}
                                     """.format(
                         e.payload.get('issue').get('html_url'),
                         e.payload.get('issue').get('title'),
                         e.payload.get('issue').get('user').get('login'),
-                        e.repo.name,
-                        e.created_at
+                        e.repo.name
                     ), parse_mode='HTML')
                 else:
                     bot.send_message(chat_id=chatid, text="""
-                                                        <a href="{}">{}</a> issue was created by {} in repo {} at {} UTC
+                                                        <a href="{}">{}</a> issue was created by {} in repo {}
                                                         """.format(
                         e.payload.get('issue').get('html_url'),
                         e.payload.get('issue').get('title'),
                         e.payload.get('issue').get('user').get('login'),
-                        e.repo.name,
-                        e.created_at
+                        e.repo.name
                     ), parse_mode='HTML')
             elif e.type == 'PullRequestEvent':
                 action = e.payload['action']
                 if action == 'closed':
                     bot.send_message(chat_id=chatid, text="""
-                                                    Pull request <a href="{}">{}</a> was closed by {} in repo {} at {} UTC
+                                                    Pull request <a href="{}">{}</a> was closed by {} in repo {}
                                                     """.format(
                         e.payload.get('pull_request').get('html_url'),
                         e.payload.get('pull_request').get('title'),
                         e.payload.get('pull_request').get('user').get('login'),
-                        e.repo.name,
-                        e.created_at
+                        e.repo.name
                     ), parse_mode='HTML')
                 elif action == 'opened':
                     bot.send_message(chat_id=chatid, text="""
-                                                    Pull request <a href="{}">{}</a> was opened by {} in repo {} at {} UTC
+                                                    Pull request <a href="{}">{}</a> was opened by {} in repo {}
                                                     Reviewers, please take a look 
                                                     """.format(
                         e.payload.get('pull_request').get('html_url'),
                         e.payload.get('pull_request').get('title'),
                         e.payload.get('pull_request').get('user').get('login'),
-                        e.repo.name,
-                        e.created_at
+                        e.repo.name
                     ), parse_mode='HTML')
             elif e.type == 'PullRequestReviewCommentEvent':
                 bot.send_message(chat_id=chatid, text="""
-                                               Pull request <a href="{}">{}</a> has been commented by {} at {} UTC
+                                               Pull request <a href="{}">{}</a> has been commented by {}
                                                """.format(
                     e.payload.get('pull_request').get('html_url'),
                     e.payload.get('pull_request').get('title'),
-                    e.payload.get('pull_request').get('user').get('login'),
-                    e.created_at
+                    e.payload.get('pull_request').get('user').get('login')
                 ), parse_mode='HTML')
             else:
                 print('not supported')
